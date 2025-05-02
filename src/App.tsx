@@ -48,6 +48,5 @@ function App() {
   );
 }
 
-// kundi
 
 export default App;
