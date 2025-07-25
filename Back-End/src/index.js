@@ -11,14 +11,17 @@ const serviceRequestRoutes = require("./routes/serviceRequestRoutes");
 const authMiddleware = require("./middleware/auth");
 const { createTransport } = require("nodemailer");
 const adminServiceRoutes = require("./routes/adminServiceRoutes");
-const ConnectedService = require('./models/ConnectedService');
-const { checkServiceActivation, checkServiceCompletion } = require('./controllers/activeServiceController');
+const ConnectedService = require("./models/ConnectedService");
+const {
+  checkServiceActivation,
+  checkServiceCompletion,
+} = require("./controllers/activeServiceController");
 
 // Set up periodic checks (every minute)
 setInterval(() => {
   // Check for services to activate
   checkServiceActivation();
-  
+
   // Check for services to complete
   checkServiceCompletion();
 }, 60000);
@@ -31,9 +34,9 @@ const server = http.createServer(app);
 // Configure Socket.io
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:5173"],  // Allow both origins
+    origin: ["http://localhost:3000", "http://localhost:5173"], // Allow both origins
     methods: ["GET", "POST"],
-    credentials: true
+    credentials: true,
   },
 });
 
@@ -96,10 +99,19 @@ app.use((err, req, res, next) => {
 // Verify email configuration on startup
 const verifyEmailConfig = async () => {
   try {
+    // Check if email credentials are configured
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.warn(
+        "⚠️  Email credentials not configured. Email functionality will be disabled."
+      );
+      console.warn(
+        "   Please set EMAIL_USER and EMAIL_PASS environment variables to enable email features."
+      );
+      return;
+    }
+
     const transporter = createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -107,12 +119,25 @@ const verifyEmailConfig = async () => {
     });
 
     await transporter.verify();
-    console.log("Email configuration verified successfully");
+    console.log("✅ Email configuration verified successfully");
   } catch (error) {
-    console.error("Email configuration error:", {
+    console.error("❌ Email configuration error:", {
       message: error.message,
       code: error.code,
     });
+    console.error("📧 Email troubleshooting tips:");
+    console.error(
+      "   1. Make sure 2-Factor Authentication is enabled on your Gmail account"
+    );
+    console.error(
+      "   2. Generate a new App Password: https://myaccount.google.com/apppasswords"
+    );
+    console.error(
+      "   3. Use the App Password (not your regular Gmail password) in EMAIL_PASS"
+    );
+    console.error(
+      "   4. App Password format should be: 'xxxx xxxx xxxx xxxx' (with spaces)"
+    );
   }
 };
 
