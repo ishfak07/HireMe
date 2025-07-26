@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import {
+  FaBell,
+  FaBolt,
+  FaBroom,
+  FaCalendar,
+  FaCar,
+  FaClock,
+  FaHammer,
+  FaHome,
+  FaMapMarkerAlt,
+  FaPaintRoller,
+  FaTools,
+  FaTree,
+  FaWrench,
+} from "react-icons/fa";
+import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
 import "./bookService.css";
-import Modal from "react-modal";
 Modal.setAppElement("#root");
-import {
-  FaCalendar,
-  FaClock,
-  FaMapMarkerAlt,
-  FaBolt,
-  FaWrench,
-  FaHammer,
-  FaCar,
-  FaTools,
-  FaBroom,
-  FaPaintRoller,
-  FaTree,
-  FaHome,
-  FaBell,
-} from "react-icons/fa";
 
 interface ServiceProvider {
   _id: string;
@@ -53,7 +53,7 @@ const BookService: React.FC = () => {
   );
   const [showTimeModal, setShowTimeModal] = useState({
     timeFrom: false,
-    timeTo: false
+    timeTo: false,
   });
   const [snNotifications, setSNNotifications] = useState<SNNotification[]>([]);
   const [showNotificationsList, setShowNotificationsList] = useState(false);
@@ -137,10 +137,13 @@ const BookService: React.FC = () => {
   const [showTransition, setShowTransition] = useState(false);
   const [previousStep, setPreviousStep] = useState(1);
 
-  const handleCustomTimeChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'timeFrom' | 'timeTo') => {
+  const handleCustomTimeChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "timeFrom" | "timeTo"
+  ) => {
     setBookingData({
       ...bookingData,
-      [field]: e.target.value
+      [field]: e.target.value,
     });
   };
 
@@ -215,7 +218,10 @@ const BookService: React.FC = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (!target.closest(".SN-BS-notification-wrapper") && showNotificationsList) {
+      if (
+        !target.closest(".SN-BS-notification-wrapper") &&
+        showNotificationsList
+      ) {
         setShowNotificationsList(false);
       }
     };
@@ -223,7 +229,6 @@ const BookService: React.FC = () => {
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, [showNotificationsList]);
-
 
   useEffect(() => {
     fetchAvailableLocations();
@@ -506,8 +511,9 @@ const BookService: React.FC = () => {
                     snNotifications.map((notification) => (
                       <div
                         key={notification._id}
-                        className={`SN-BS-notification-item ${!notification.read ? "SN-BS-unread" : ""
-                          }`}
+                        className={`SN-BS-notification-item ${
+                          !notification.read ? "SN-BS-unread" : ""
+                        }`}
                       >
                         <p className="SN-BS-notification-message">
                           {notification.message}
@@ -551,12 +557,16 @@ const BookService: React.FC = () => {
       <div className="SN-BS-book-service">
         <div className="SN-BS-booking-progress">
           <div
-            className={`SN-BS-progress-step ${step >= 1 ? "SN-BS-active" : ""} ${step > 1 ? "SN-BS-completed" : ""}`}
+            className={`SN-BS-progress-step ${
+              step >= 1 ? "SN-BS-active" : ""
+            } ${step > 1 ? "SN-BS-completed" : ""}`}
           >
             1. Select Service
           </div>
           <div
-            className={`SN-BS-progress-step ${step >= 2 ? "SN-BS-active" : ""} ${step > 2 ? "SN-BS-completed" : ""}`}
+            className={`SN-BS-progress-step ${
+              step >= 2 ? "SN-BS-active" : ""
+            } ${step > 2 ? "SN-BS-completed" : ""}`}
           >
             2. Schedule
           </div>
@@ -568,13 +578,21 @@ const BookService: React.FC = () => {
         </div>
 
         {/* Add transition overlay */}
-        {showTransition && (
-          <div className="SN-BS-step-transition"></div>
-        )}
+        {showTransition && <div className="SN-BS-step-transition"></div>}
 
         {step === 1 && (
           <div className="SN-BS-service-selection">
-            <h2>Select a Service</h2>
+            <div className="SN-BS-selection-header">
+              <h2>Select a Service</h2>
+              <button
+                className="SN-BS-view-all-providers-btn"
+                onClick={() =>
+                  navigate("/service-needer/all-service-providers")
+                }
+              >
+                Show All Service Providers
+              </button>
+            </div>
             <div className="SN-BS-services-grid">
               {services.map((service) => (
                 <div
@@ -617,13 +635,19 @@ const BookService: React.FC = () => {
                 {showLocationDropdown && availableLocations.length > 0 && (
                   <div className="SN-BS-location-dropdown">
                     {availableLocations
-                      .filter(location =>
-                        location.toLowerCase().includes(bookingData.location.toLowerCase()))
+                      .filter((location) =>
+                        location
+                          .toLowerCase()
+                          .includes(bookingData.location.toLowerCase())
+                      )
                       .map((location, index) => (
                         <div
                           key={index}
-                          className={`SN-BS-location-option ${bookingData.location === location ? 'SN-BS-highlighted' : ''
-                            }`}
+                          className={`SN-BS-location-option ${
+                            bookingData.location === location
+                              ? "SN-BS-highlighted"
+                              : ""
+                          }`}
                           onMouseDown={() => {
                             setBookingData((prev) => ({ ...prev, location }));
                             setShowLocationDropdown(false);
@@ -678,7 +702,9 @@ const BookService: React.FC = () => {
               <div className="SN-BS-form-group">
                 <FaClock
                   onClick={() => {
-                    const timeFromInput = document.querySelector('input[name="timeFrom"]');
+                    const timeFromInput = document.querySelector(
+                      'input[name="timeFrom"]'
+                    );
                     if (timeFromInput) {
                       (timeFromInput as HTMLElement).click();
                     }
@@ -688,7 +714,7 @@ const BookService: React.FC = () => {
                   type="time"
                   name="timeFrom"
                   value={bookingData.timeFrom}
-                  onChange={(e) => handleCustomTimeChange(e, 'timeFrom')}
+                  onChange={(e) => handleCustomTimeChange(e, "timeFrom")}
                   min="08:00"
                   max="20:00"
                   required
@@ -701,7 +727,9 @@ const BookService: React.FC = () => {
               <div className="SN-BS-form-group">
                 <FaClock
                   onClick={() => {
-                    const timeToInput = document.querySelector('input[name="timeTo"]');
+                    const timeToInput = document.querySelector(
+                      'input[name="timeTo"]'
+                    );
                     if (timeToInput) {
                       (timeToInput as HTMLElement).click();
                     }
@@ -711,7 +739,7 @@ const BookService: React.FC = () => {
                   type="time"
                   name="timeTo"
                   value={bookingData.timeTo}
-                  onChange={(e) => handleCustomTimeChange(e, 'timeTo')}
+                  onChange={(e) => handleCustomTimeChange(e, "timeTo")}
                   min={bookingData.timeFrom || "08:00"}
                   max="20:00"
                   required
