@@ -496,6 +496,11 @@
     color: var(--warning-color);
 }
 
+.ad-activity-icon.info {
+    background: rgba(0, 123, 255, 0.1);
+    color: #007bff;
+}
+
 .ad-activity-details {
     flex: 1;
 }
@@ -996,6 +1001,18 @@
     .ad-mobile-menu-toggle {
         margin-right: 0.25rem;
     }
+}
+
+/* No activities state */
+.ad-no-activities {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-secondary);
+}
+
+.ad-no-activities p {
+    margin: 0;
+    font-size: 0.95rem;
 }
 
 /* Add support for very small devices */

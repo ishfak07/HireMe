@@ -11,6 +11,7 @@ import {
   FaExclamationCircle,
   FaFileInvoiceDollar,
   FaHourglassHalf,
+  FaInfoCircle,
   FaSignOutAlt,
   FaTachometerAlt,
   FaTimes,
@@ -23,6 +24,19 @@ import { useNavigate } from "react-router-dom";
 import "./dashboard.css";
 
 const API_BASE_URL = "http://localhost:5000/api";
+
+interface ActivityItem {
+  id: string;
+  type:
+    | "service_completed"
+    | "service_provider_approved"
+    | "service_needer_registered"
+    | "service_requested"
+    | "service_activated";
+  message: string;
+  time: string;
+  icon: "success" | "warning" | "info";
+}
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -39,6 +53,7 @@ const AdminDashboard: React.FC = () => {
     totalServices: { count: 0, trend: 0 },
     avgServiceValue: { amount: 0, trend: 0 },
   });
+  const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 1043);
@@ -93,6 +108,73 @@ const AdminDashboard: React.FC = () => {
     },
     { id: "settings", icon: FaCog, label: "Settings", category: "management" },
   ];
+
+  // Function to generate recent activities from real data
+  const generateRecentActivities = (
+    completedServices: unknown[],
+    serviceProviders: unknown[],
+    serviceNeeders: unknown[],
+    serviceRequests: unknown[]
+  ): ActivityItem[] => {
+    const activities: ActivityItem[] = [];
+
+    // Add completed services (most recent first)
+    completedServices.slice(0, 2).forEach((service: any, index) => {
+      activities.push({
+        id: `completed_${index}`,
+        type: "service_completed",
+        message: `Service completed for ${
+          service.serviceNeeder?.name || "customer"
+        }`,
+        time: service.completedAt
+          ? new Date(service.completedAt).toLocaleString()
+          : "Recently",
+        icon: "success",
+      });
+    });
+
+    // Add recent service provider approvals
+    serviceProviders.slice(0, 1).forEach((provider: any, index) => {
+      activities.push({
+        id: `provider_${index}`,
+        type: "service_provider_approved",
+        message: `New service provider "${provider.name}" approved`,
+        time: provider.approvedAt
+          ? new Date(provider.approvedAt).toLocaleString()
+          : "Recently",
+        icon: "success",
+      });
+    });
+
+    // Add recent service needer registrations
+    serviceNeeders.slice(0, 1).forEach((needer: any, index) => {
+      activities.push({
+        id: `needer_${index}`,
+        type: "service_needer_registered",
+        message: `New customer "${needer.name}" registered`,
+        time: needer.createdAt
+          ? new Date(needer.createdAt).toLocaleString()
+          : "Recently",
+        icon: "info",
+      });
+    });
+
+    // Add recent service requests
+    serviceRequests.slice(0, 1).forEach((request: any, index) => {
+      activities.push({
+        id: `request_${index}`,
+        type: "service_requested",
+        message: `New service request for ${request.serviceType || "service"}`,
+        time: request.createdAt
+          ? new Date(request.createdAt).toLocaleString()
+          : "Recently",
+        icon: "warning",
+      });
+    });
+
+    // Sort by most recent and limit to 5 items
+    return activities.slice(0, 5);
+  };
 
   // Fetch dashboard data
   useEffect(() => {
@@ -155,6 +237,16 @@ const AdminDashboard: React.FC = () => {
           totalServices: { count: totalServicesCount, trend: 10.4 },
           avgServiceValue: { amount: avgServiceValue, trend: 5.8 },
         });
+
+        // Generate recent activities from real data
+        const activities = generateRecentActivities(
+          completedServicesResponse.data,
+          serviceProvidersResponse.data,
+          serviceNeedersResponse.data,
+          serviceRequestsResponse.data
+        );
+        setRecentActivities(activities);
+
         setLoading(false);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
@@ -556,42 +648,24 @@ const AdminDashboard: React.FC = () => {
                   <div className="ad-error-message-small">
                     <FaExclamationCircle /> {error}
                   </div>
+                ) : recentActivities.length > 0 ? (
+                  recentActivities.map((activity) => (
+                    <div key={activity.id} className="ad-activity-item">
+                      <div className={`ad-activity-icon ${activity.icon}`}>
+                        {activity.icon === "success" && <FaCheckCircle />}
+                        {activity.icon === "warning" && <FaExclamationCircle />}
+                        {activity.icon === "info" && <FaInfoCircle />}
+                      </div>
+                      <div className="ad-activity-details">
+                        <p className="ad-activity-text">{activity.message}</p>
+                        <p className="ad-activity-time">{activity.time}</p>
+                      </div>
+                    </div>
+                  ))
                 ) : (
-                  <>
-                    <div className="ad-activity-item">
-                      <div className="ad-activity-icon success">
-                        <FaCheckCircle />
-                      </div>
-                      <div className="ad-activity-details">
-                        <p className="ad-activity-text">
-                          New service provider approved
-                        </p>
-                        <p className="ad-activity-time">2 hours ago</p>
-                      </div>
-                    </div>
-                    <div className="ad-activity-item">
-                      <div className="ad-activity-icon warning">
-                        <FaExclamationCircle />
-                      </div>
-                      <div className="ad-activity-details">
-                        <p className="ad-activity-text">
-                          Service request pending review
-                        </p>
-                        <p className="ad-activity-time">4 hours ago</p>
-                      </div>
-                    </div>
-                    <div className="ad-activity-item">
-                      <div className="ad-activity-icon success">
-                        <FaCheckCircle />
-                      </div>
-                      <div className="ad-activity-details">
-                        <p className="ad-activity-text">
-                          New customer registered
-                        </p>
-                        <p className="ad-activity-time">Yesterday</p>
-                      </div>
-                    </div>
-                  </>
+                  <div className="ad-no-activities">
+                    <p>No recent activity to display</p>
+                  </div>
                 )}
               </div>
             </div>
