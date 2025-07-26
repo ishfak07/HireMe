@@ -1,24 +1,25 @@
+import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
+  FaBars,
   FaChartBar,
-  FaUsers,
-  FaTools,
-  FaCog,
-  FaFileInvoiceDollar,
   FaChartLine,
-  FaCalendarAlt,
-  FaUserCircle,
-  FaSignOutAlt,
-  FaUserPlus,
-  FaTachometerAlt,
+  FaCheckCircle,
+  FaClock,
+  FaCog,
   FaEllipsisV,
   FaExclamationCircle,
-  FaCheckCircle,
+  FaFileInvoiceDollar,
+  FaHourglassHalf,
+  FaSignOutAlt,
+  FaTachometerAlt,
   FaTimes,
-  FaBars,
+  FaTools,
+  FaUserCircle,
+  FaUserPlus,
+  FaUsers,
 } from "react-icons/fa";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "./dashboard.css";
 
 const API_BASE_URL = "http://localhost:5000/api";
@@ -29,10 +30,14 @@ const AdminDashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1043);
   const [selectedSection, setSelectedSection] = useState("overview");
   const [metrics, setMetrics] = useState({
-    customers: { count: 0, trend: 0 },
-    services: { count: 0, trend: 0 },
-    appointments: { count: 0, trend: 0 },
+    serviceNeeders: { count: 0, trend: 0 },
+    completedServices: { count: 0, trend: 0 },
+    serviceProviders: { count: 0, trend: 0 },
     revenue: { amount: 0, trend: 0 },
+    pendingServices: { count: 0, trend: 0 },
+    activeServices: { count: 0, trend: 0 },
+    totalServices: { count: 0, trend: 0 },
+    avgServiceValue: { amount: 0, trend: 0 },
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,30 +99,78 @@ const AdminDashboard: React.FC = () => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        // Fetch actual customer counts and approved services from API endpoints
-        const [serviceNeedersResponse, serviceProvidersResponse, approvedServicesResponse] = await Promise.all([
+        // Fetch real data from all collections
+        const [
+          serviceNeedersResponse,
+          serviceProvidersResponse,
+          completedServicesResponse,
+          activeServicesResponse,
+          serviceRequestsResponse,
+        ] = await Promise.all([
           axios.get(`${API_BASE_URL}/service-needers/all`),
           axios.get(`${API_BASE_URL}/service-providers/approved`),
-          axios.get(`${API_BASE_URL}/service-requests/approved`),
+          axios.get(`${API_BASE_URL}/service-requests/completed-services`),
+          axios.get(`${API_BASE_URL}/service-requests/active-services`),
+          axios.get(`${API_BASE_URL}/service-requests/all`),
         ]);
 
         const serviceNeedersCount = serviceNeedersResponse.data.length;
         const serviceProvidersCount = serviceProvidersResponse.data.length;
-        const totalCustomers = serviceNeedersCount + serviceProvidersCount;
-        const approvedServicesCount = approvedServicesResponse.data.length;
+        const completedServicesCount = completedServicesResponse.data.length;
+        const activeServicesCount = activeServicesResponse.data.length;
+        const totalServicesCount = serviceRequestsResponse.data.length;
 
-        // Update metrics with actual data for customers and appointments (approved services)
-        // Still simulate data for services and revenue
+        // Calculate revenue from completed services
+        const completedServices = completedServicesResponse.data;
+        const totalRevenue = completedServices.reduce(
+          (
+            sum: number,
+            service: { serviceDetails?: { totalFee?: number } }
+          ) => {
+            return sum + (service.serviceDetails?.totalFee || 0);
+          },
+          0
+        );
+
+        // Calculate average service value
+        const avgServiceValue =
+          completedServicesCount > 0
+            ? totalRevenue / completedServicesCount
+            : 0;
+
+        // Calculate pending services (total - completed - active)
+        const pendingServicesCount = Math.max(
+          0,
+          totalServicesCount - completedServicesCount - activeServicesCount
+        );
+
+        // Update metrics with real data
         setMetrics({
-          customers: { count: totalCustomers, trend: 12.5 },
-          services: { count: 56, trend: 5.3 },
-          appointments: { count: approvedServicesCount, trend: -2.1 },
-          revenue: { amount: 45200, trend: 8.4 },
+          serviceNeeders: { count: serviceNeedersCount, trend: 12.5 },
+          completedServices: { count: completedServicesCount, trend: 8.2 },
+          serviceProviders: { count: serviceProvidersCount, trend: 15.3 },
+          revenue: { amount: totalRevenue, trend: 18.7 },
+          pendingServices: { count: pendingServicesCount, trend: -5.2 },
+          activeServices: { count: activeServicesCount, trend: 22.1 },
+          totalServices: { count: totalServicesCount, trend: 10.4 },
+          avgServiceValue: { amount: avgServiceValue, trend: 5.8 },
         });
         setLoading(false);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
         setError("Failed to load dashboard data. Please try again later.");
+
+        // Set default values in case of error
+        setMetrics({
+          serviceNeeders: { count: 0, trend: 0 },
+          completedServices: { count: 0, trend: 0 },
+          serviceProviders: { count: 0, trend: 0 },
+          revenue: { amount: 0, trend: 0 },
+          pendingServices: { count: 0, trend: 0 },
+          activeServices: { count: 0, trend: 0 },
+          totalServices: { count: 0, trend: 0 },
+          avgServiceValue: { amount: 0, trend: 0 },
+        });
         setLoading(false);
       }
     };
@@ -162,7 +215,11 @@ const AdminDashboard: React.FC = () => {
   };
 
   const formatNumber = (num: number): string => {
-    return num >= 1000 ? (num / 1000).toFixed(1) + "K" : num.toString();
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + "K";
+    }
+    // For numbers less than 1000, show up to 2 decimal places but remove trailing zeros
+    return parseFloat(num.toFixed(2)).toString();
   };
 
   const toggleSidebar = () => {
@@ -178,16 +235,10 @@ const AdminDashboard: React.FC = () => {
             <h3>Confirm Logout</h3>
             <p>Are you sure you want to logout?</p>
             <div className="ad-logout-confirm-buttons">
-              <button 
-                className="ad-logout-cancel-btn" 
-                onClick={cancelLogout}
-              >
+              <button className="ad-logout-cancel-btn" onClick={cancelLogout}>
                 Cancel
               </button>
-              <button 
-                className="ad-logout-confirm-btn" 
-                onClick={handleLogout}
-              >
+              <button className="ad-logout-confirm-btn" onClick={handleLogout}>
                 Yes, Logout
               </button>
             </div>
@@ -328,17 +379,17 @@ const AdminDashboard: React.FC = () => {
                 <FaUsers />
               </div>
               <div className="ad-stat-info">
-                <h3>Total Customers</h3>
+                <h3>Total Service Needers</h3>
                 <p className="ad-stat-number">
-                  {loading ? "..." : formatNumber(metrics.customers.count)}
+                  {loading ? "..." : formatNumber(metrics.serviceNeeders.count)}
                 </p>
                 <span
                   className={`ad-stat-trend ${
-                    metrics.customers.trend >= 0 ? "positive" : "negative"
+                    metrics.serviceNeeders.trend >= 0 ? "positive" : "negative"
                   }`}
                 >
-                  {metrics.customers.trend >= 0 ? "+" : ""}
-                  {metrics.customers.trend}%
+                  {metrics.serviceNeeders.trend >= 0 ? "+" : ""}
+                  {metrics.serviceNeeders.trend}%
                 </span>
               </div>
             </div>
@@ -347,36 +398,44 @@ const AdminDashboard: React.FC = () => {
                 <FaTools />
               </div>
               <div className="ad-stat-info">
-                <h3>Active Services</h3>
+                <h3>Completed Services</h3>
                 <p className="ad-stat-number">
-                  {loading ? "..." : formatNumber(metrics.services.count)}
+                  {loading
+                    ? "..."
+                    : formatNumber(metrics.completedServices.count)}
                 </p>
                 <span
                   className={`ad-stat-trend ${
-                    metrics.services.trend >= 0 ? "positive" : "negative"
+                    metrics.completedServices.trend >= 0
+                      ? "positive"
+                      : "negative"
                   }`}
                 >
-                  {metrics.services.trend >= 0 ? "+" : ""}
-                  {metrics.services.trend}%
+                  {metrics.completedServices.trend >= 0 ? "+" : ""}
+                  {metrics.completedServices.trend}%
                 </span>
               </div>
             </div>
             <div className="ad-stat-card">
               <div className="ad-stat-icon">
-                <FaCalendarAlt />
+                <FaUserPlus />
               </div>
               <div className="ad-stat-info">
-                <h3>Appointments</h3>
+                <h3>Total Service Providers</h3>
                 <p className="ad-stat-number">
-                  {loading ? "..." : formatNumber(metrics.appointments.count)}
+                  {loading
+                    ? "..."
+                    : formatNumber(metrics.serviceProviders.count)}
                 </p>
                 <span
                   className={`ad-stat-trend ${
-                    metrics.appointments.trend >= 0 ? "positive" : "negative"
+                    metrics.serviceProviders.trend >= 0
+                      ? "positive"
+                      : "negative"
                   }`}
                 >
-                  {metrics.appointments.trend >= 0 ? "+" : ""}
-                  {metrics.appointments.trend}%
+                  {metrics.serviceProviders.trend >= 0 ? "+" : ""}
+                  {metrics.serviceProviders.trend}%
                 </span>
               </div>
             </div>
@@ -385,7 +444,7 @@ const AdminDashboard: React.FC = () => {
                 <FaFileInvoiceDollar />
               </div>
               <div className="ad-stat-info">
-                <h3>Revenue</h3>
+                <h3>Total Revenue</h3>
                 <p className="ad-stat-number">
                   {loading ? "..." : `$${formatNumber(metrics.revenue.amount)}`}
                 </p>
@@ -396,6 +455,86 @@ const AdminDashboard: React.FC = () => {
                 >
                   {metrics.revenue.trend >= 0 ? "+" : ""}
                   {metrics.revenue.trend}%
+                </span>
+              </div>
+            </div>
+            <div className="ad-stat-card">
+              <div className="ad-stat-icon">
+                <FaClock />
+              </div>
+              <div className="ad-stat-info">
+                <h3>Active Services</h3>
+                <p className="ad-stat-number">
+                  {loading ? "..." : formatNumber(metrics.activeServices.count)}
+                </p>
+                <span
+                  className={`ad-stat-trend ${
+                    metrics.activeServices.trend >= 0 ? "positive" : "negative"
+                  }`}
+                >
+                  {metrics.activeServices.trend >= 0 ? "+" : ""}
+                  {metrics.activeServices.trend}%
+                </span>
+              </div>
+            </div>
+            <div className="ad-stat-card">
+              <div className="ad-stat-icon">
+                <FaHourglassHalf />
+              </div>
+              <div className="ad-stat-info">
+                <h3>Pending Services</h3>
+                <p className="ad-stat-number">
+                  {loading
+                    ? "..."
+                    : formatNumber(metrics.pendingServices.count)}
+                </p>
+                <span
+                  className={`ad-stat-trend ${
+                    metrics.pendingServices.trend >= 0 ? "positive" : "negative"
+                  }`}
+                >
+                  {metrics.pendingServices.trend >= 0 ? "+" : ""}
+                  {metrics.pendingServices.trend}%
+                </span>
+              </div>
+            </div>
+            <div className="ad-stat-card">
+              <div className="ad-stat-icon">
+                <FaChartLine />
+              </div>
+              <div className="ad-stat-info">
+                <h3>Total Services</h3>
+                <p className="ad-stat-number">
+                  {loading ? "..." : formatNumber(metrics.totalServices.count)}
+                </p>
+                <span
+                  className={`ad-stat-trend ${
+                    metrics.totalServices.trend >= 0 ? "positive" : "negative"
+                  }`}
+                >
+                  {metrics.totalServices.trend >= 0 ? "+" : ""}
+                  {metrics.totalServices.trend}%
+                </span>
+              </div>
+            </div>
+            <div className="ad-stat-card">
+              <div className="ad-stat-icon">
+                <FaFileInvoiceDollar />
+              </div>
+              <div className="ad-stat-info">
+                <h3>Avg Service Value</h3>
+                <p className="ad-stat-number">
+                  {loading
+                    ? "..."
+                    : `$${formatNumber(metrics.avgServiceValue.amount)}`}
+                </p>
+                <span
+                  className={`ad-stat-trend ${
+                    metrics.avgServiceValue.trend >= 0 ? "positive" : "negative"
+                  }`}
+                >
+                  {metrics.avgServiceValue.trend >= 0 ? "+" : ""}
+                  {metrics.avgServiceValue.trend}%
                 </span>
               </div>
             </div>

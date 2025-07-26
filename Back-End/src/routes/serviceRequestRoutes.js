@@ -584,4 +584,42 @@ router.get("/all-service-providers", authMiddleware, async (req, res) => {
   }
 });
 
+// Admin routes for dashboard
+router.get("/completed-services", async (req, res) => {
+  try {
+    const completedServices = await CompletedService.find({}).sort({
+      completedAt: -1,
+    });
+
+    res.status(200).json(completedServices);
+  } catch (error) {
+    console.error("Error fetching completed services:", error);
+    res.status(500).json({ message: "Error fetching completed services" });
+  }
+});
+
+router.get("/active-services", async (req, res) => {
+  try {
+    const activeServices = await ActiveService.find({}).sort({ startedAt: -1 });
+
+    res.status(200).json(activeServices);
+  } catch (error) {
+    console.error("Error fetching active services:", error);
+    res.status(500).json({ message: "Error fetching active services" });
+  }
+});
+
+router.get("/all", async (req, res) => {
+  try {
+    const allServiceRequests = await ServiceRequest.find({}).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json(allServiceRequests);
+  } catch (error) {
+    console.error("Error fetching all service requests:", error);
+    res.status(500).json({ message: "Error fetching all service requests" });
+  }
+});
+
 module.exports = router;
