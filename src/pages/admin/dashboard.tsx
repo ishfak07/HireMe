@@ -303,6 +303,8 @@ const AdminDashboard: React.FC = () => {
       navigate("/admin/services");
     } else if (itemId === "customers") {
       navigate("/admin/customers");
+    } else if (itemId === "analytics") {
+      navigate("/admin/analytics");
     }
   };
 
