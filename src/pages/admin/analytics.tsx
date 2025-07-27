@@ -305,7 +305,7 @@ const AdminAnalytics: React.FC = () => {
             </div>
 
             <div className="ana-stat-card">
-              <div className="ana-stat-icon services">
+              <div className="ana-stat-icon services-">
                 <FaTools />
               </div>
               <div className="ana-stat-info">
