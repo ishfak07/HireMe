@@ -766,11 +766,11 @@
         color-adjust: exact;
         print-color-adjust: exact;
     }
-    
+
     .reports-header .header-actions {
         display: none;
     }
-    
+
     .chart-section,
     .report-section,
     .reports-footer {
@@ -780,14 +780,14 @@
         color-adjust: exact;
         print-color-adjust: exact;
     }
-    
+
     .revenue-bar {
         background: linear-gradient(180deg, var(--primary-color), var(--secondary-color)) !important;
         -webkit-print-color-adjust: exact;
         color-adjust: exact;
         print-color-adjust: exact;
     }
-    
+
     .service-type-item {
         background: var(--background-dark) !important;
         border: 1px solid var(--border-color) !important;
@@ -795,7 +795,7 @@
         color-adjust: exact;
         print-color-adjust: exact;
     }
-    
+
     .rank {
         background: var(--primary-color) !important;
         color: var(--background-dark) !important;
@@ -803,7 +803,7 @@
         color-adjust: exact;
         print-color-adjust: exact;
     }
-    
+
     .reports-table th {
         background: var(--background-dark) !important;
         color: var(--text-primary) !important;
@@ -811,7 +811,7 @@
         color-adjust: exact;
         print-color-adjust: exact;
     }
-    
+
     * {
         -webkit-print-color-adjust: exact;
         color-adjust: exact;

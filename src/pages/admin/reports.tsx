@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import React, { useEffect, useRef, useState } from "react";
 import {
   FaArrowLeft,
   FaChartBar,
@@ -10,7 +11,6 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 // @ts-expect-error - html2pdf.js doesn't have TypeScript definitions
 import html2pdf from "html2pdf.js";
 import "./reports.css";
@@ -92,12 +92,7 @@ const ReportsPage: React.FC = () => {
         setServiceTypeData(analyticsData.servicesByType || []);
 
         // Fetch additional data for reports
-        const [
-          ,
-          ,
-          completedServicesResponse,
-          ,
-        ] = await Promise.all([
+        const [, , completedServicesResponse, ,] = await Promise.all([
           axios.get(`${API_BASE_URL}/service-needers/all`),
           axios.get(`${API_BASE_URL}/service-providers/approved`),
           axios.get(`${API_BASE_URL}/service-requests/completed-services`),
@@ -105,7 +100,7 @@ const ReportsPage: React.FC = () => {
         ]);
 
         const completedServices = completedServicesResponse.data;
-        
+
         // Calculate location data
         const locationMap = new Map<
           string,
@@ -246,28 +241,30 @@ const ReportsPage: React.FC = () => {
 
     try {
       const element = reportRef.current;
-      
+
       // PDF options for better quality and color preservation
       const options = {
         margin: [0.5, 0.5, 0.5, 0.5],
-        filename: `hireme-reports-${new Date().toISOString().split("T")[0]}.pdf`,
+        filename: `hireme-reports-${
+          new Date().toISOString().split("T")[0]
+        }.pdf`,
         image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { 
+        html2canvas: {
           scale: 2,
           useCORS: true,
           allowTaint: true,
           backgroundColor: "#121212",
           logging: false,
           letterRendering: true,
-          removeContainer: true
+          removeContainer: true,
         },
-        jsPDF: { 
-          unit: "in", 
-          format: "a4", 
+        jsPDF: {
+          unit: "in",
+          format: "a4",
           orientation: "portrait",
-          compress: true
+          compress: true,
         },
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
       };
 
       // Generate PDF
@@ -315,12 +312,15 @@ const ReportsPage: React.FC = () => {
           </div>
         </div>
         <div className="header-actions">
-          <button 
-            className={`action-btn download-btn ${isGeneratingPDF ? 'generating' : ''}`}
+          <button
+            className={`action-btn download-btn ${
+              isGeneratingPDF ? "generating" : ""
+            }`}
             onClick={handleDownloadReport}
             disabled={isGeneratingPDF}
           >
-            <FaDownload /> {isGeneratingPDF ? 'Generating PDF...' : 'Download PDF'}
+            <FaDownload />{" "}
+            {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
           </button>
           <button
             className="action-btn refresh-btn"
