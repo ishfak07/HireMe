@@ -7,6 +7,7 @@ import AdminLogin from "./pages/admin/login";
 import ReportsPage from "./pages/admin/reports";
 import ProviderRequests from "./pages/admin/serviceProviders";
 import ServicesPage from "./pages/admin/services";
+import AdminSettings from "./pages/admin/settings";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import FirstPage from "./pages/firstPage";
@@ -37,6 +38,7 @@ function App() {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/analytics" element={<AdminAnalytics />} />
         <Route path="/admin/reports" element={<ReportsPage />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
         <Route path="/admin/service-provider" element={<ProviderRequests />} />
         <Route
           path="/service-provider/login"

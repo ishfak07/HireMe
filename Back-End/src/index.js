@@ -58,7 +58,6 @@ app.get("/", (req, res) => {
 // API Routes
 app.use("/api/service-providers", requestedServiceProviderRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/admin", authMiddleware, adminRoutes);
 app.use("/api/service-needers", serviceNeederRoutes);
 app.use("/api/service-requests", serviceRequestRoutes);
 app.use("/api/service-requests", adminServiceRoutes);
