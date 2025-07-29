@@ -127,12 +127,12 @@ const ServiceDetailsModal: React.FC<ServiceDetailsModalProps> = ({
           <button className="secondary-btn" onClick={onClose}>
             Close
           </button>
-          {service.status === "requested" && (
+          {/* {service.status === "requested" && (
             <>
               <button className="approve-btn">Approve Request</button>
               <button className="reject-btn">Reject Request</button>
             </>
-          )}
+          )} */}
         </div>
       </div>
     </div>
