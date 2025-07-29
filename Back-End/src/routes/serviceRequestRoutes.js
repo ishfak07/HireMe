@@ -19,7 +19,10 @@ const {
   generateServiceOTP,
   verifyServiceOTP,
 } = require("../controllers/connectedServiceController");
-const { activateService, completeService } = require('../controllers/activeServiceController');
+const {
+  activateService,
+  completeService,
+} = require("../controllers/activeServiceController");
 const CompletedService = require("../models/CompletedService");
 const ActiveService = require("../models/ActiveService");
 
@@ -421,7 +424,6 @@ router.get("/my-connected-services", authMiddleware, async (req, res) => {
   }
 });
 
-
 // Add this route to the existing router
 router.post(
   "/activate-service/:connectedServiceId",
@@ -563,6 +565,60 @@ router.get("/provider-completed-services", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error fetching completed services:", error);
     res.status(500).json({ message: "Error fetching completed services" });
+  }
+});
+
+// Get all approved service providers
+router.get("/all-service-providers", authMiddleware, async (req, res) => {
+  try {
+    const ApprovedServiceProvider = require("../models/ApprovedServiceProvider");
+
+    const providers = await ApprovedServiceProvider.find({})
+      .select("-password -resetPasswordOTP -resetPasswordExpires")
+      .sort({ approvedAt: -1 });
+
+    res.status(200).json(providers);
+  } catch (error) {
+    console.error("Error fetching all service providers:", error);
+    res.status(500).json({ message: "Error fetching service providers" });
+  }
+});
+
+// Admin routes for dashboard
+router.get("/completed-services", async (req, res) => {
+  try {
+    const completedServices = await CompletedService.find({}).sort({
+      completedAt: -1,
+    });
+
+    res.status(200).json(completedServices);
+  } catch (error) {
+    console.error("Error fetching completed services:", error);
+    res.status(500).json({ message: "Error fetching completed services" });
+  }
+});
+
+router.get("/active-services", async (req, res) => {
+  try {
+    const activeServices = await ActiveService.find({}).sort({ startedAt: -1 });
+
+    res.status(200).json(activeServices);
+  } catch (error) {
+    console.error("Error fetching active services:", error);
+    res.status(500).json({ message: "Error fetching active services" });
+  }
+});
+
+router.get("/all", async (req, res) => {
+  try {
+    const allServiceRequests = await ServiceRequest.find({}).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json(allServiceRequests);
+  } catch (error) {
+    console.error("Error fetching all service requests:", error);
+    res.status(500).json({ message: "Error fetching all service requests" });
   }
 });
 
